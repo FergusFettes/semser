@@ -1,8 +1,9 @@
 [tool.poetry]
-name = "semser-cli"
+name = "semser"
 version = "0.1.0"
 description = "A simple Semantic Scholar search CLI."
 authors = ["fergus <fergusfettes@gmail.com>"]
+homepage = "https://github.com/fergusfettes/semser"
 packages = [{ include = "semser" }]
 
 [tool.poetry.dependencies]
@@ -12,9 +13,28 @@ semanticscholar = ">=0.7.0"
 rich = ">=13.7.0"
 requests = ">=2.31.0"
 
+[tool.poetry.group.dev.dependencies]
+ipdb = "^0.13.11"
+ipython = "^8.10.0"
+
 [tool.poetry.scripts]
 semser = "semser.semantic_search:app"
 
+# After this is info for pypi replease
+[project]
+name = "semser
+version = "0.1.0"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[project.scripts]
+cll = "cll.__main__:main"
+
+[tool.setuptools]
+packages = ["semser"]
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
