@@ -13,50 +13,71 @@ app = typer.Typer()
 def main(query: str, limit: int = 10):
     papers = sch.search_paper(query, limit=limit)
     for i in range(limit):
-        paper = papers[i]
-        title = paper['title']
-        date = paper['publicationDate']
-        authors = ", ".join([author['name'] for author in paper['authors']])
-        citations = paper['citationCount']
-        # This will be a color, used in the shell
-        if paper['openAccessPdf']:
-            open_status = paper['openAccessPdf']['status'].lower()
-            open_status = "green" if open_status in ["green", "gold", "hybrid"] else "red"
-            rich.print(paper['openAccessPdf'])
-        else:
-            open_status = "red"
-        rich.print(
-            f"{i}: "
-            f"({citations}) "
-            f"{title}, "
-            f"[i]{authors[:60]}[/i], "
-            f"{date}, "
-            f"[{open_status}]Open[/{open_status}]"
-        )
+        print_paper(papers[i], i)
 
     # Read in some values. If they are numbers, get those papers
-    results = typer.prompt("Papers to retrieve (csl: 1,2,3 etc): ")
+    results = typer.prompt("Papers to retrieve (csl: 1,2,3 etc)")
     if not results:
         return
 
-    results = results.split(',')
-
     typer.echo(f"\nDownloading {results}")
-    for result in results:
-        if paper['openAccessPdf']:
-            download(papers[int(result)]['openAccessPdf']['url'])
-        else:
-            typer.echo("No open access PDF available for this paper.")
+
+    if results == "all":
+        results = ",".join([str(i) for i in range(limit)])
+    for result in results.split(','):
+        download(papers[int(result)])
 
 
-def download(url):
+@app.command()
+def paper(paper: str, y: bool = False):
+    if "www.semanticscholar" in paper:
+        id = paper.split("/")[-1]
+    else:
+        id = paper
+
+    paper = sch.get_paper(id)
+    print_paper(paper, 0)
+
+    if not y:
+        y = typer.confirm("Retrieve paper?", abort=True)
+    if y:
+        download(paper)
+
+
+def print_paper(paper, index):
+    title = paper['title']
+    date = paper['publicationDate']
+    authors = ", ".join([author['name'] for author in paper['authors']])
+
+    citations = paper['citationCount']
+    # This will be a color, used in the shell
+    if paper['openAccessPdf']:
+        open_status = paper['openAccessPdf']['status'].lower()
+        open_status = "green" if open_status in ["green", "gold", "hybrid"] else "red"
+    else:
+        open_status = "red"
+    rich.print(
+        f"{index}: "
+        f"{date}, "
+        f"[{open_status}]({citations})[/{open_status}] "
+        f"{title}, "
+        f"[i]{authors}[/i]"
+    )
+
+
+def download(paper):
     """
     Download the paper from the url with requests to the 'papers' directory.
     """
-    filename = url.split('/')[-1]
+    if paper['openAccessPdf']:
+        url = paper['openAccessPdf']['url']
+    else:
+        typer.echo(f"No open access PDF available for {paper['title']}")
+        return
     r = requests.get(url, allow_redirects=True)
 
     Path("papers").mkdir(parents=True, exist_ok=True)
+    filename = paper['title'].replace(" ", "_")[:40]
 
     open(f"papers/{filename}.pdf", 'wb').write(r.content)
 
