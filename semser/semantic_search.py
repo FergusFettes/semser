@@ -74,6 +74,9 @@ def search_author(query: str):
         limit=20
     )
 
+    # Convert it to a list of dicts
+    authors = [author for author in authors]
+
     # Sometimes it returns a long list, if so print an error message and truncate
     if len(authors) > 20:
         rich.print("[red]Too many results, truncating to 20[/red]\n")
