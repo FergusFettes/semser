@@ -134,20 +134,19 @@ def download(paper):
 
     # Check if the file has already been downloaded
     if Path(f"papers/{filename}.pdf").exists():
-        typer.echo(f"File already exists: {filename}.pdf")
+        rich.print(f"[green]File already exists: {filename}.pdf[/green]\n")
         return
 
     if paper['openAccessPdf']:
         url = paper['openAccessPdf']['url']
+        rich.print(f"[green]Downloading: {filename}.pdf[/green]\n")
+        r = requests.get(url, allow_redirects=True)
+        open(f"papers/{filename}.pdf", 'wb').write(r.content)
     else:
-        typer.echo(
-            f"No open access PDF available for {paper['title']}. "
-            f"Try sci-hub: https://sci-hub.ru/{paper['externalIds']['DOI']}"
+        rich.print(
+            f"[red]No open access PDF available for\n[/red][i]{paper['title']}[/i]\n"
+            f"[yellow]Try sci-hub:[/yellow]\nhttps://sci-hub.ru/{paper['externalIds']['DOI']}\n"
         )
-        return
-    r = requests.get(url, allow_redirects=True)
-
-    open(f"papers/{filename}.pdf", 'wb').write(r.content)
 
 
 if __name__ == "__main__":
