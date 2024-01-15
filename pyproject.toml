@@ -22,7 +22,7 @@ semser = "semser.semantic_search:app"
 
 # After this is info for pypi replease
 [project]
-name = "semser
+name = "semser"
 version = "0.1.0"
 dynamic = ["dependencies"]
 
