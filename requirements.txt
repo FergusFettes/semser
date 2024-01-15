@@ -1,0 +1,4 @@
+typer
+semanticscholar
+rich
+requests
