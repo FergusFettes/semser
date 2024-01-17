@@ -151,8 +151,9 @@ def download(paper):
     """
     Download the paper from the url with requests to the 'papers' directory.
     """
-    Path("papers").mkdir(parents=True, exist_ok=True)
+    Path("~/semser_papers/").expanduser().mkdir(parents=True, exist_ok=True)
     filename = paper['title'].replace(" ", "_").replace("/", "_")[:40]
+    path = Path(f"~/semser_papers/{filename}.pdf").expanduser()
 
     rich.print(
         f"[green]Downloading: {filename}.pdf[/green]\n"
@@ -160,16 +161,16 @@ def download(paper):
     )
 
     # Check if the file has already been downloaded
-    if Path(f"papers/{filename}.pdf").exists():
+    if path.exists():
         rich.print(f"[green]File already exists: {filename}.pdf[/green]\n")
         return
 
     if paper['openAccessPdf']:
         url = paper['openAccessPdf']['url']
-        _download(url, filename)
+        _download(url, path)
     elif 'ArXiv' in paper['externalIds']:
         url = f"https://arxiv.org/pdf/{paper['externalIds']['ArXiv']}.pdf"
-        _download(url, filename)
+        _download(url, path)
     elif 'DOI' in paper['externalIds']:
         rich.print(
             f"[red]No open access PDF available for\n[/red][i]{paper['title']}[/i]\n"
@@ -181,9 +182,9 @@ def download(paper):
         )
 
 
-def _download(url, filename):
+def _download(url, path):
     r = requests.get(url, allow_redirects=True)
-    open(f"papers/{filename}.pdf", 'wb').write(r.content)
+    open(str(path), 'wb').write(r.content)
 
 
 if __name__ == "__main__":
