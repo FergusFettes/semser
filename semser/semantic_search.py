@@ -12,14 +12,17 @@ app = typer.Typer()
 
 @app.command()
 def search(query: str, limit: int = 10, author: Optional[str] = None):
+    # Remove any newlines from the query
+    query = query.replace("\n", " ")
     papers = sch.search_paper(query, limit=limit)
 
     select_and_print(papers, limit)
 
 
 def select_and_print(papers, limit):
-    papers = sorted(papers, key=lambda x: x['citationCount'], reverse=True)
+    # papers = sorted(papers, key=lambda x: x['citationCount'], reverse=True)
 
+    limit = min(limit, len(papers))
     for i in range(limit):
         print_paper(papers[i], i)
 
@@ -31,7 +34,7 @@ def select_and_print(papers, limit):
     typer.echo(f"\nDownloading {results}")
 
     if results == "all":
-        results = ",".join([str(i) for i in range(limit)])
+        results = ",".join([str(i) for i in range(len(papers))])
     for result in results.split(','):
         download(papers[int(result)])
 
@@ -53,9 +56,9 @@ def paper(paper: str, y: bool = False):
 
 
 @app.command()
-def author(query: str, limit: int = 10):
+def author(query: str, limit: int = 20):
     if not query.isdigit():
-        author_id = search_author(query)
+        author_id = search_author(query, limit=limit)
         if not author_id:
             return
     else:
@@ -64,14 +67,14 @@ def author(query: str, limit: int = 10):
     author = sch.get_author(author_id)
     papers = author['papers']
 
-    select_and_print(papers, limit)
+    select_and_print(papers)
 
 
-def search_author(query: str):
+def search_author(query: str, limit: int = 20):
     authors = sch.search_author(
         query,
         fields=["name", "hIndex", "citationCount", "paperCount", "authorId"],
-        limit=20
+        limit=limit
     )
 
     # Convert it to a list of dicts
@@ -139,6 +142,11 @@ def download(paper):
     Path("papers").mkdir(parents=True, exist_ok=True)
     filename = paper['title'].replace(" ", "_").replace("/", "_")[:40]
 
+    rich.print(
+        f"[green]Downloading: {filename}.pdf[/green]\n"
+        f"{paper['url']}"
+    )
+
     # Check if the file has already been downloaded
     if Path(f"papers/{filename}.pdf").exists():
         rich.print(f"[green]File already exists: {filename}.pdf[/green]\n")
@@ -146,14 +154,24 @@ def download(paper):
 
     if paper['openAccessPdf']:
         url = paper['openAccessPdf']['url']
-        rich.print(f"[green]Downloading: {filename}.pdf[/green]\n")
-        r = requests.get(url, allow_redirects=True)
-        open(f"papers/{filename}.pdf", 'wb').write(r.content)
-    else:
+        _download(url, filename)
+    elif 'ArXiv' in paper['externalIds']:
+        url = f"https://arxiv.org/pdf/{paper['externalIds']['ArXiv']}.pdf"
+        _download(url, filename)
+    elif 'DOI' in paper['externalIds']:
         rich.print(
             f"[red]No open access PDF available for\n[/red][i]{paper['title']}[/i]\n"
             f"[yellow]Try sci-hub:[/yellow]\nhttps://sci-hub.ru/{paper['externalIds']['DOI']}\n"
         )
+    else:
+        rich.print(
+            f"[red]No open access PDF available for\n[/red][i]{paper['title']}[/i]\n"
+        )
+
+
+def _download(url, filename):
+    r = requests.get(url, allow_redirects=True)
+    open(f"papers/{filename}.pdf", 'wb').write(r.content)
 
 
 if __name__ == "__main__":
