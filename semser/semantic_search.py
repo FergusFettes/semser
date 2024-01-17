@@ -20,14 +20,13 @@ def search(query: str, limit: int = 10, author: Optional[str] = None):
 
 
 def select_and_print(papers, limit):
-    # papers = sorted(papers, key=lambda x: x['citationCount'], reverse=True)
 
     limit = min(limit, len(papers))
     for i in range(limit):
         print_paper(papers[i], i)
 
     # Read in some values. If they are numbers, get those papers
-    results = typer.prompt("Papers to retrieve (csl: 1,2,3 etc)")
+    results = typer.prompt("Papers to retrieve (csl: 1,2,3 etc, or 'all')")
     if not results:
         return
 
@@ -79,7 +78,8 @@ def author(query: str, limit: int = 20):
     author = sch.get_author(author_id)
     papers = author['papers']
 
-    select_and_print(papers)
+    papers = sorted(papers, key=lambda x: x['citationCount'], reverse=True)
+    select_and_print(papers, limit=limit)
 
 
 def search_author(query: str, limit: int = 20):
