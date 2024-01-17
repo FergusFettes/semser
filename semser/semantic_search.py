@@ -56,6 +56,18 @@ def paper(paper: str, y: bool = False):
 
 
 @app.command()
+def papers(filename: str):
+    with open(filename, 'r') as f:
+        papers = f.readlines()
+
+    for name in papers:
+        name = name.strip()
+        if not name:
+            continue
+        paper(name, True)
+
+
+@app.command()
 def author(query: str, limit: int = 20):
     if not query.isdigit():
         author_id = search_author(query, limit=limit)
