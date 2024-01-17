@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "semser"
-version = "0.1.1"
+version = "0.2.0"
 description = "A simple Semantic Scholar search CLI."
 authors = ["fergus <fergusfettes@gmail.com>"]
 homepage = "https://github.com/fergusfettes/semser"
@@ -24,7 +24,7 @@ semser = "semser.semantic_search:app"
 # After this is info for pypi replease
 [project]
 name = "semser"
-version = "0.1.1"
+version = "0.2.0"
 dynamic = ["dependencies"]
 
 [tool.setuptools.dynamic]
