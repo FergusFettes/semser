@@ -4,6 +4,7 @@ version = "0.2.0"
 description = "A simple Semantic Scholar search CLI."
 authors = ["fergus <fergusfettes@gmail.com>"]
 homepage = "https://github.com/fergusfettes/semser"
+readme = "README.md"
 packages = [{ include = "semser" }]
 
 [tool.poetry.dependencies]
